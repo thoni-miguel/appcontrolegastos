@@ -9,7 +9,7 @@ import br.ceub.app_controle_gastos.model.Category
 import br.ceub.app_controle_gastos.model.Item
 import br.ceub.app_controle_gastos.model.ShoppingList
 
-@Database(entities = [Category::class, Item::class, ShoppingList::class], version = 3, exportSchema = false)
+@Database(entities = [Category::class, Item::class, ShoppingList::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun categoryDao(): CategoryDao

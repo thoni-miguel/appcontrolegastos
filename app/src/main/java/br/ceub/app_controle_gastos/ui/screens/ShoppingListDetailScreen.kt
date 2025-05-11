@@ -11,7 +11,12 @@ import br.ceub.app_controle_gastos.ui.viewmodel.CategoryViewModel
 import br.ceub.app_controle_gastos.ui.viewmodel.ItemViewModel
 import androidx.navigation.NavHostController
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.ui.Alignment
+import br.ceub.app_controle_gastos.ui.util.formatToBRL
+import br.ceub.app_controle_gastos.ui.viewmodel.ShoppingListViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,6 +24,7 @@ fun ShoppingListDetailScreen(
     shoppingListId: Int,
     itemViewModel: ItemViewModel,
     categoryViewModel: CategoryViewModel,
+    shoppingListViewModel: ShoppingListViewModel,
     navController: NavHostController
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -29,20 +35,22 @@ fun ShoppingListDetailScreen(
 
     val filteredItems = items.filter { it.shoppingListId == shoppingListId }
 
+    val shoppingList by shoppingListViewModel.getListById(shoppingListId).collectAsState(initial = null)
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Items in List") },
+                title = { Text(shoppingList?.name ?: "Itens da lista") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog = true }) {
-                Text("+")
+                Icon(imageVector = Icons.Outlined.Add, contentDescription = "Add")
             }
         }
     ) { padding ->
@@ -52,16 +60,35 @@ fun ShoppingListDetailScreen(
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            Text("Items in this List", style = MaterialTheme.typography.headlineMedium)
+            val total = filteredItems.sumOf { it.price }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Lista de itens",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    text = "Total: R$ %.2f".format(Locale("pt", "BR"), total),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filteredItems) { item ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(text = item.name, style = MaterialTheme.typography.titleMedium)
-                            Text(text = "R$ ${item.price}", style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                text = String.format(Locale("pt", "BR"), "R$ %.2f", item.price),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                             if (!item.description.isNullOrBlank()) {
                                 Text(text = item.description, style = MaterialTheme.typography.bodySmall)
                             }

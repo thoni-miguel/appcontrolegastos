@@ -43,7 +43,8 @@ fun MainNavigation(
                 shoppingListId = listId,
                 itemViewModel = itemViewModel,
                 navController = navController,
-                categoryViewModel = categoryViewModel
+                categoryViewModel = categoryViewModel,
+                shoppingListViewModel = shoppingListViewModel
             )
         }
     }

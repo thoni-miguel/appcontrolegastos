@@ -2,9 +2,20 @@ package br.ceub.app_controle_gastos.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "items")
+@Entity(
+    tableName = "items",
+    foreignKeys = [
+        ForeignKey(
+            entity = ShoppingList::class,
+            parentColumns = ["id"],
+            childColumns = ["shopping_list_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class Item (
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

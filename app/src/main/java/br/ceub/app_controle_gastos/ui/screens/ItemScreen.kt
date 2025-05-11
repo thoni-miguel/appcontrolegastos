@@ -20,75 +20,8 @@ import br.ceub.app_controle_gastos.model.Category
 import br.ceub.app_controle_gastos.model.Item
 import br.ceub.app_controle_gastos.ui.viewmodel.ItemViewModel
 import br.ceub.app_controle_gastos.data.CategoryDao
-
-
-@Composable
-fun ItemScreen(
-    navController: NavController,
-    viewModel: ItemViewModel,
-    categoryDao: CategoryDao,
-) {
-
-    var showDialog by remember { mutableStateOf(false) }
-
-    val items by viewModel.items.collectAsState()
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
-                Text("add")
-            }
-        }) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            Text("Nome da Lista", style = MaterialTheme.typography.headlineMedium)
-            //modificar pro texto superior deve mostrar o nome personalizado que o usuário deu para a lista
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LazyColumn {
-                items(items) { item ->
-                    EnumItem(item)
-                }
-            }
-        }
-    }
-
-    if (showDialog) {
-        val categories by categoryDao.listAll().collectAsState(initial = emptyList())
-        ItemDialog(
-            categories = categories,
-            onDismiss = { showDialog = false },
-            onSalvar = { newItem ->
-                viewModel.insertItem(newItem)
-                showDialog = false
-            },
-            shoppingListId = 1
-        )
-    }
-}
-
-@Composable
-fun EnumItem(item: Item) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            item.name, style = MaterialTheme.typography.titleMedium
-        )
-        Text(
-            text = "R$ %.2f".format(item.price), style = MaterialTheme.typography.titleMedium
-        )
-    }
-}
-
+import br.ceub.app_controle_gastos.ui.util.autoFocus
+import br.ceub.app_controle_gastos.ui.util.formatToBRL
 
 @Composable
 fun ItemDialog(
@@ -112,21 +45,25 @@ fun ItemDialog(
                     name = it
                     errorName = false
                 },
-                label = { Text("Name") },
+                label = { Text("Nome") },
                 isError = errorName,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .autoFocus()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = price,
+                value = formatToBRL(price),
                 onValueChange = {
-                    price = it
-                    errorPrice = false
+                    if (it.length <= 9) {
+                        price = it.replace(Regex("[^\\d]"), "")
+                        errorPrice = false
+                    }
                 },
-                label = { Text("Price") },
+                label = { Text("Preço") },
                 isError = errorPrice,
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -149,7 +86,7 @@ fun ItemDialog(
                 onValueChange = {
                     description = it
                 },
-                label = { Text("Description (optional)") },
+                label = { Text("Descrição (opcional)") },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -165,18 +102,23 @@ fun ItemDialog(
             }
             val newItem = Item(
                 name = name.trim(),
-                price = price.trim().toDouble(),
+                price = try {
+                    price.toDouble() / 100
+                } catch (e: NumberFormatException) {
+                    errorPrice = true
+                    return@TextButton
+                },
                 categoryId = selectedCategoryId ?: 1,
                 shoppingListId = shoppingListId,
                 description = description.trim().ifBlank { null }
             )
             onSalvar(newItem)
         }) {
-            Text("Save")
+            Text("Salvar")
         }
     }, dismissButton = {
         TextButton(onClick = onDismiss) {
-            Text("Cancel")
+            Text("Cancelar")
         }
     })
 }

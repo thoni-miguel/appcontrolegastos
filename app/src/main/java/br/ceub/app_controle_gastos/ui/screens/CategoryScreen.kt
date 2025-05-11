@@ -6,12 +6,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import br.ceub.app_controle_gastos.model.Category
+import br.ceub.app_controle_gastos.ui.util.autoFocus
 import br.ceub.app_controle_gastos.ui.viewmodel.CategoryViewModel
 
 @Composable
@@ -22,7 +25,7 @@ fun CategoriaScreen(viewModel: CategoryViewModel) {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog = true }) {
-                Text("+")
+                Icon(imageVector = Icons.Outlined.Add, contentDescription = "Add")
             }
         }
     ) { padding ->
@@ -36,7 +39,8 @@ fun CategoriaScreen(viewModel: CategoryViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn {
-                items(categories) { category ->
+                val filteredCategories = categories.filter { it.id != 1 } // Para esconder a categoria padrão "nenhum" do usuario
+                items(filteredCategories) { category ->
                     CategoriaItem(category)
                 }
             }
@@ -87,10 +91,10 @@ fun CategoriaDialog(
         0xFF9C27B0.toInt()  // Roxo
     )
 
-    var nome by remember { mutableStateOf("") }
-    var descricao by remember { mutableStateOf("") }
-    var corSelecionada by remember { mutableStateOf<Int?>(null) }
-    var erroNome by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf<Int?>(null) }
+    var errorName by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -98,22 +102,24 @@ fun CategoriaDialog(
         text = {
             Column {
                 OutlinedTextField(
-                    value = nome,
+                    value = name,
                     onValueChange = {
-                        nome = it
-                        erroNome = false
+                        name = it
+                        errorName = false
                     },
                     label = { Text("Nome") },
-                    isError = erroNome,
+                    isError = errorName,
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .autoFocus()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = descricao,
-                    onValueChange = { descricao = it },
+                    value = description,
+                    onValueChange = { description = it },
                     label = { Text("Descrição (opcional)") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -130,9 +136,9 @@ fun CategoriaDialog(
                             modifier = Modifier
                                 .size(36.dp)
                                 .background(Color(cor))
-                                .clickable { corSelecionada = cor }
+                                .clickable { selectedColor = cor }
                                 .then(
-                                    if (corSelecionada == cor) Modifier.border(2.dp, Color.Black)
+                                    if (selectedColor == cor) Modifier.border(2.dp, Color.Black)
                                     else Modifier
                                 )
                         )
@@ -142,14 +148,14 @@ fun CategoriaDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (nome.isBlank()) {
-                    erroNome = true
+                if (name.isBlank()) {
+                    errorName = true
                     return@TextButton
                 }
                 val novaCategory = Category(
-                    name = nome.trim(),
-                    description = descricao.trim().ifBlank { null },
-                    color = corSelecionada
+                    name = name.trim(),
+                    description = description.trim().ifBlank { null },
+                    color = selectedColor
                 )
                 onSave(novaCategory)
             }) {
