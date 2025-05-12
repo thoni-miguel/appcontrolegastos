@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    id("kotlin-kapt") // Necessário para usar anotações do Room
 
 }
 
@@ -59,13 +59,17 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Room
+    // Integração do ViewModel com Jetpack Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+
+    // Room (persistência local com SQLite via ORM)
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1") // Suporte a coroutines com Room
 
-    // Kotlin Extensions and Coroutines support for Room
-    implementation("androidx.room:room-ktx:2.6.1")
+    // WorkManager (agendamento de notificações e tarefas em segundo plano)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
+    // Navigation Compose (navegação entre telas com Jetpack Compose)
     implementation("androidx.navigation:navigation-compose:2.7.7")
 }
